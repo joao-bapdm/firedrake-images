@@ -1,0 +1,21 @@
+# Docker image for installing cplex version 20.10
+
+FROM spyro-vanilla:87629a1
+
+MAINTAINER Joao Moreira <bapdmdias@usp.com>
+
+##########   USAGE INSTRUCTIONS   ##########
+# Build the image
+# > docker build --file Dockerfile.cplex --tag spyro-cplex:20.10 .
+# Run the image
+# > docker run --tty --interactive spyro-cplex:20.10
+
+##########   INSTALL SOFTWARE   ##########
+# Get binary and installation config
+COPY ILOG_COD_EE_V20.10_LINUX_X86_64.bin cplex/
+COPY installer.properties cplex/
+# Install cplex
+RUN cd cplex/ && bash ILOG_COD_EE_V20.10_LINUX_X86_64.bin -i silent -f installer.properties \
+    && cd $HOME && sudo rm --recursive --force cplex/ \
+    && python /home/firedrake/CPLEX/python/setup.py install
+

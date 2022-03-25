@@ -1,0 +1,41 @@
+# Docker image for installing firedrake
+
+FROM spyro-env:latest
+
+MAINTAINER Joao Moreira <bapdmdias@usp.com>
+
+##########   USAGE INSTRUCTIONS   ##########
+# Build the image
+# > docker build --file Dockerfile.firedrake --tag spyro-firedrake:Firedrake_20220223.1 .
+# Run the image
+# > docker run --tty --interactive spyro-firedrake:Firedrake_20220223.1
+
+##########   INSTALL SOFTWARE   ##########
+# Change to firedrake user and go to homedir
+USER firedrake
+WORKDIR /home/firedrake
+
+# Install firedrake
+RUN curl -O https://raw.githubusercontent.com/firedrakeproject/firedrake/master/scripts/firedrake-install
+RUN bash -c "python3 firedrake-install --no-package-manager --disable-ssh \
+                                       --minimal-petsc \
+                                       --package-branch Firedrake Firedrake_20220223.1 \
+                                       --package-branch COFFEE Firedrake_20220223.1 \
+                                       --package-branch ufl Firedrake_20220223.1 \
+                                       --package-branch fiat Firedrake_20220223.1 \
+                                       --package-branch FInAT Firedrake_20220223.1 \
+                                       --package-branch tsfc Firedrake_20220223.1 \
+                                       --package-branch PyOP2 Firedrake_20220223.1 \
+                                       --package-branch loopy Firedrake_20220223.1 \
+                                       --package-branch petsc Firedrake_20220223.1 \
+                                       --package-branch pyadjoint 2019.1.2 \
+                                       --remove-build-files \
+                                       --venv-name=firedrake"
+
+# Firedrake complains if this variable is not set
+ENV OMP_NUM_THREADS=1
+
+# Activate firedrake environment
+ENV VIRTUAL_ENV=/home/firedrake/firedrake
+ENV PATH=/home/firedrake/firedrake/bin:$PATH
+

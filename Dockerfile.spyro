@@ -1,0 +1,26 @@
+# Docker image for installing spyro
+
+FROM spyro-firedrake:Firedrake_20220223.1
+
+MAINTAINER Joao Moreira <bapdmdias@usp.com>
+
+##########   USAGE INSTRUCTIONS   ##########
+# Build the image
+# > docker build --file Dockerfile.spyro --tag spyro-vanilla:87629a1 .
+# Run the image
+# > docker run --tty --interactive spyro-vanilla:87629a1
+
+##########   INSTALL SOFTWARE   ##########
+# Install seismicmesh
+RUN python -m pip install SeismicMesh==3.6.2
+# Install spyro
+RUN git clone --no-checkout https://github.com/NDF-Poli-USP/spyro.git && cd spyro/ \
+    && git checkout -b master 87629a1 \
+    && python -m pip install -e .
+# Install ROL
+RUN python -m pip install roltrilinos==0.0.9
+RUN python -m pip install ROL==0.0.16
+# Fix path so that libteuchosparameterlist.so.12 can be found (see link below)
+# https://bitbucket.org/dolfin-adjoint/pyadjoint/issues/83/failed-to-import-rol-with-pyadjoint-201810
+ENV LD_LIBRARY_PATH /home/firedrake/firedrake/lib/python3.8/site-packages/roltrilinos/lib/
+
