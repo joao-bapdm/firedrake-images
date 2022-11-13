@@ -1,0 +1,60 @@
+Bootstrap: library
+From: ubuntu:20.04
+
+%labels
+    Author Joao Moreira
+    Contact joaobapdmdias@gmail.com
+
+%help
+    This container encapsulates a firedrake installation together
+    with the IBM ILOG CPLEX optimizer.
+
+%files
+    ILOG_COD_EE_V20.10_LINUX_X86_64.bin
+    installer.properties
+
+%post
+    apt-get update && apt-get -y dist-upgrade \
+    && DEBIAN_FRONTEND=noninteractive apt-get -y install tzdata \
+    && apt-get -y install curl vim docker.io \
+        openssh-client build-essential autoconf automake \
+        cmake gfortran git libopenblas-serial-dev \
+        libtool python3-dev python3-pip python3-tk python3-venv \
+        python3-requests zlib1g-dev libboost-dev sudo bison \
+        flex liboce-ocaf-dev swig graphviz libcgal-dev default-jre \
+    && rm -rf /var/lib/apt/lists/*
+
+    FIREDRAKE_DIR=/home/firedrake
+    FIREDRAKE_RELEASE="Firedrake_20221011.0"
+    mkdir -p $FIREDRAKE_DIR && cd $FIREDRAKE_DIR
+    curl -O https://raw.githubusercontent.com/firedrakeproject/firedrake/master/scripts/firedrake-install
+    bash -c "PETSC_CONFIGURE_OPTIONS='--download-fftw=1' python3 firedrake-install --no-package-manager --disable-ssh --remove-build-files \
+                                                                                   --package-branch Firedrake $FIREDRAKE_RELEASE \
+                                                                                   --venv-name=firedrake"
+
+    git config --global --add safe.directory /home/firedrake/firedrake/src/firedrake
+
+    VIRTUAL_ENV=$FIREDRAKE_DIR/firedrake
+    PATH=$VIRTUAL_ENV/bin:$PATH
+
+    python -m pip install SeismicMesh==3.6.2
+    python -m pip install roltrilinos==0.0.9
+    python -m pip install ROL==0.0.16
+    python -m pip install scikit-image==0.19.2
+
+    bash /ILOG_COD_EE_V20.10_LINUX_X86_64.bin -i silent -f /installer.properties
+    python /home/firedrake/CPLEX/python/setup.py install
+
+%environment
+    export PYTHONPATH=/home/firedrake/CPLEX
+    export FIREDRAKE_DIR=/home/firedrake
+    export VIRTUAL_ENV=$FIREDRAKE_DIR/firedrake
+    export PATH=$VIRTUAL_ENV/bin:$PATH
+    export LD_LIBRARY_PATH=/home/firedrake/firedrake/lib/python3.8/site-packages/roltrilinos/lib$LD_LIBRARY_PATH
+    export PYTHONWARNINGS="ignore"
+    export OMP_NUM_THREADS=1
+    export LC_ALL=C.UTF-8
+    export FIREDRAKE_CACHE_DIR=.FIREDRAKE_CACHE_DIR
+    export PYOP2_CACHE_DIR=.PYOP2_CACHE_DIR
+    export FIREDRAKE_TSFC_KERNEL_CACHE_DIR=.FIREDRAKE_TSFC_KERNEL_CACHE_DIR
+
