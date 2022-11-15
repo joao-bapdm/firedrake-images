@@ -46,7 +46,6 @@ From: ubuntu:20.04
     python /home/firedrake/CPLEX/python/setup.py install
 
 %environment
-    export PYTHONPATH=/home/firedrake/CPLEX
     export FIREDRAKE_DIR=/home/firedrake
     export VIRTUAL_ENV=$FIREDRAKE_DIR/firedrake
     export PATH=$VIRTUAL_ENV/bin:$PATH
